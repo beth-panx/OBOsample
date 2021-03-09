@@ -8,22 +8,30 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.Console;
 import java.net.MalformedURLException;
 
 @RestController
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ApiController {
 
     @Autowired
     MsalAuthHelper msalAuthHelper;
 
+    @CrossOrigin(origins = "*", allowedHeaders = "*")
     @RequestMapping("/graphMeApi")
     public String graphMeApi() throws MalformedURLException {
 
         String oboAccessToken = msalAuthHelper.getOboToken("https://graph.microsoft.com/.default");
+
+        // todo: remove
+        System.out.println("obo token:");
+        System.out.println(oboAccessToken);
 
         return callMicrosoftGraphMeEndpoint(oboAccessToken);
     }

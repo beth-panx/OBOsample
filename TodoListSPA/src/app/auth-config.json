@@ -1,0 +1,16 @@
+{
+  "credentials": {
+    "clientId": "d3b74494-58bf-4185-b7a4-e6cb633d1392",
+    "tenantId": "e385e570-3c0b-407e-820b-508aa199cd11"
+  },
+  "configuration": {
+    "redirectUri": "http://localhost:4200",
+    "postLogoutRedirectUri": "http://localhost:4200"
+  },
+  "resources": {
+    "todoListApi": {
+      "resourceUri": "http://localhost:8081/graphMeApi",
+      "resourceScopes": [ "api://1caa7f44-3650-45b4-b4e6-b39824aaf47a/access_as_user" ]
+    }
+  }     
+}

@@ -45,6 +45,10 @@ class MsalAuthHelper {
     String getOboToken(String scope) throws MalformedURLException {
         String authToken = getAuthToken();
 
+        // todo: remove
+        System.out.println("auth token:");
+        System.out.println(authToken);
+
         ConfidentialClientApplication application =
                 ConfidentialClientApplication.builder(clientId, ClientCredentialFactory.createFromSecret(secret))
                         .authority(authority).build();
@@ -56,6 +60,9 @@ class MsalAuthHelper {
         if (cachedTokens != null) {
             application.tokenCache().deserialize(cachedTokens);
         }
+        System.out.println("1");
+        System.out.println(cachedTokens);
+
 
         IAuthenticationResult auth;
         try {
@@ -63,17 +70,28 @@ class MsalAuthHelper {
                     SilentParameters.builder(Collections.singleton(scope))
                             .build();
             auth = application.acquireTokenSilently(silentParameters).join();
+            System.out.println("2");
+
         } catch (Exception ex) {
             if (ex.getCause() instanceof MsalException) {
                 OnBehalfOfParameters parameters =
                         OnBehalfOfParameters.builder(Collections.singleton(scope),
                                 new UserAssertion(authToken))
                                 .build();
+                                
+
                 auth = application.acquireToken(parameters).join();
+                System.out.println("3");
+                System.out.println(auth);
+
             } else {
                 throw ex;
             }
         }
+
+        // todo: remove
+        System.out.println("obo token:");
+        System.out.println(auth.accessToken());
 
         cacheManager.getCache("tokens").put(cacheKey, application.tokenCache().serialize());
 
