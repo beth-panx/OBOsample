@@ -18,7 +18,7 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
 import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
 
 import { AppRoutingModule } from './app-routing.module';
-import { TodoService } from './todo.service';
+import { Service } from './service';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { MeViewComponent } from './me-view/me-view.component';
@@ -113,7 +113,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MsalService,
     MsalGuard,
     MsalBroadcastService,
-    TodoService,
+    Service,
   ],
   bootstrap: [AppComponent]
 })

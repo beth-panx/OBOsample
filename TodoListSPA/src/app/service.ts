@@ -5,7 +5,7 @@ import * as auth from './auth-config.json';
 @Injectable({
   providedIn: 'root'
 })
-export class TodoService {
+export class Service {
   url = auth.resources.todoListApi.resourceUri;
 
   constructor(private http: HttpClient) { }

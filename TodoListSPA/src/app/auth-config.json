@@ -10,7 +10,7 @@
   "resources": {
     "todoListApi": {
       "resourceUri": "http://localhost:8081/graphMeApi",
-      "resourceScopes": [ "api://1caa7f44-3650-45b4-b4e6-b39824aaf47a/access_as_user" ]
+      "resourceScopes": [ "api://1caa7f44-3650-45b4-b4e6-b39824aaf47a/.default" ]
     }
   }     
 }
