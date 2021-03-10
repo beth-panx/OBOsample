@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -53,7 +53,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
  */
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
-  protectedResourceMap.set(auth.resources.todoListApi.resourceUri, auth.resources.todoListApi.resourceScopes);
+  protectedResourceMap.set(auth.resources.backend.resourceUri, auth.resources.backend.resourceScopes);
 
   return {
     interactionType: InteractionType.Redirect,
@@ -66,7 +66,12 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
  * additional scopes you want the user to consent upon login, add them here as well.
  */
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
-  return { interactionType: InteractionType.Redirect };
+  return { interactionType: InteractionType.Redirect,
+    // authRequest: {
+    //   // add default scopes for mgt components
+    //   scopes: ['user.read']
+    // }
+  };
 }
 
 @NgModule({
@@ -92,6 +97,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MatCheckboxModule,
     MatIconModule,
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,

@@ -6,7 +6,7 @@ import * as auth from './auth-config.json';
   providedIn: 'root'
 })
 export class Service {
-  url = auth.resources.todoListApi.resourceUri;
+  url = auth.resources.backend.resourceUri;
 
   constructor(private http: HttpClient) { }
 
