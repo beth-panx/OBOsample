@@ -5,13 +5,14 @@
 
   <button mat-raised-button *ngIf="!loggedIn" (click)="login()">Login</button>
   <button mat-raised-button *ngIf="loggedIn" color="warn" (click)="logout()">Logout</button>
-  <!-- <mgt-login id="login"></mgt-login> -->
+  <mgt-login id="login" *ngIf="loggedIn"></mgt-login>
   <mgt-person person-query="me"></mgt-person>
 </mat-toolbar>
 
 <div class="container">
   <!--This is to avoid reload during acquireTokenSilent() because of hidden iframe -->
   <router-outlet *ngIf="!isIframe"></router-outlet>
+  <mgt-people-picker></mgt-people-picker>
 </div>
 
 <footer *ngIf="loggedIn">

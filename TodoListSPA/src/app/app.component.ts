@@ -1,16 +1,36 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
-import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration, MsalModule } from '@azure/msal-angular';
-import { EventMessage, EventType, InteractionType, PopupRequest, RedirectRequest } from '@azure/msal-browser';
+import {
+  MsalService,
+  MsalBroadcastService,
+  MSAL_GUARD_CONFIG,
+  MsalGuardConfiguration,
+  MsalModule,
+} from '@azure/msal-angular';
+import {
+  AccountInfo,
+  AuthenticationResult,
+  EventMessage,
+  EventType,
+  InteractionRequiredAuthError,
+  InteractionType,
+  PopupRequest,
+  RedirectRequest,
+} from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { Providers, SimpleProvider, ProviderState, TemplateHelper } from '@microsoft/mgt/dist/es6/index.js';
+import {
+  Providers,
+  SimpleProvider,
+  ProviderState,
+  TemplateHelper,
+} from '@microsoft/mgt/dist/es6/index.js';
 import * as auth from './auth-config.json';
 import { MSALInstanceFactory } from './app.module';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'Microsoft identity platform';
@@ -18,14 +38,15 @@ export class AppComponent implements OnInit, OnDestroy {
   loggedIn = false;
   private readonly _destroying$ = new Subject<void>();
   accessToken = '';
+  account: any = {};
+  _msalGuardConfig = {};
 
   constructor(
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService
   ) {
-    console.log('constructor msalGuardConfig',this.msalGuardConfig);
-    Providers.globalProvider = new SimpleProvider(this.getAccessToken);
+    console.log('constructor msalGuardConfig', this.msalGuardConfig);
     console.log('global provider: ', Providers.globalProvider);
 
     TemplateHelper.setBindingSyntax('[[', ']]');
@@ -33,16 +54,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isIframe = window !== window.parent && !window.opener;
-
+    this._msalGuardConfig = this.msalGuardConfig;
     this.checkAccount();
-    console.log('ngOnInit',this.msalGuardConfig);
+    console.log('ngOnInit', this.msalGuardConfig);
 
     this.authService.handleRedirectObservable().subscribe({
       next: (result) => {
-        this.accessToken = result.accessToken;
         Providers.globalProvider.setState(ProviderState.SignedIn);
+        console.log('Set account here', this.account);
       },
-      error: (error) => console.log(error)
+      error: (error) => console.log(error),
     });
 
     /**
@@ -51,20 +72,25 @@ export class AppComponent implements OnInit, OnDestroy {
      */
     this.msalBroadcastService.msalSubject$
       .pipe(
-        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
+        filter(
+          (msg: EventMessage) =>
+            msg.eventType === EventType.LOGIN_SUCCESS ||
+            msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS
+        ),
         takeUntil(this._destroying$)
       )
       .subscribe((result) => {
         this.checkAccount();
       });
-
-      console.log('ngOnInit end',this.msalGuardConfig);
+    Providers.globalProvider = new SimpleProvider(this.getAccessToken);
+    console.log('ngOnInit end', this.msalGuardConfig);
   }
 
   async getAccessToken(scopes: any): Promise<any> {
     const msalObj = MSALInstanceFactory();
-    var request = { scopes: scopes };
-    console.log('getAccessToken', this.msalGuardConfig);
+    //Why isn't this.account set here?
+    var request = { scopes: scopes, account: msalObj.getAllAccounts()[0] };
+    console.log('getAccessToken', msalObj.getAllAccounts()[0]);
     try {
       let response = await msalObj.acquireTokenSilent(request);
       console.log('0', response.accessToken);
@@ -72,8 +98,10 @@ export class AppComponent implements OnInit, OnDestroy {
     } catch (error) {
       // handle error
       console.log('0', error);
+      if (error instanceof InteractionRequiredAuthError) {
+        msalObj.acquireTokenRedirect(request);
+      }
     }
-
   }
 
   checkAccount() {
@@ -82,30 +110,35 @@ export class AppComponent implements OnInit, OnDestroy {
 
   login() {
     console.log('trying to login');
-    console.log('msalGuardConfig', this.msalGuardConfig);
+    console.log('msalGuardConfig', this._msalGuardConfig);
 
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
-      if (this.msalGuardConfig.authRequest){
-        this.authService.loginPopup({...this.msalGuardConfig.authRequest} as PopupRequest)
+      if (this.msalGuardConfig.authRequest) {
+        this.authService
+          .loginPopup({ ...this.msalGuardConfig.authRequest } as PopupRequest)
           .subscribe(() => this.checkAccount());
-        } else {
-          this.authService.loginPopup()
-            .subscribe(() => this.checkAccount());
+      } else {
+        this.authService.loginPopup().subscribe(() => this.checkAccount());
       }
     } else {
-      if (this.msalGuardConfig.authRequest){
-        this.authService.loginRedirect({...this.msalGuardConfig.authRequest} as RedirectRequest);
+      if (this.msalGuardConfig.authRequest) {
+        this.authService.loginRedirect({
+          ...this.msalGuardConfig.authRequest,
+        } as RedirectRequest);
       } else {
         this.authService.loginRedirect();
       }
     }
-    Providers.globalProvider.setState(ProviderState.SignedIn)
-    console.log('SignedIn:', Providers.globalProvider.state === ProviderState.SignedIn);
+    Providers.globalProvider.setState(ProviderState.SignedIn);
+    console.log(
+      'SignedIn:',
+      Providers.globalProvider.state === ProviderState.SignedIn
+    );
   }
 
   logout() {
     this.authService.logout();
-    Providers.globalProvider.setState(ProviderState.SignedOut)
+    Providers.globalProvider.setState(ProviderState.SignedOut);
   }
 
   // unsubscribe to events when component is destroyed
