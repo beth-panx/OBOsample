@@ -61,7 +61,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.authService.handleRedirectObservable().subscribe({
       next: (result) => {
         Providers.globalProvider.setState(ProviderState.SignedIn);
-        console.log('Set account here', this.account);
       },
       error: (error) => console.log(error),
     });
@@ -83,6 +82,12 @@ export class AppComponent implements OnInit, OnDestroy {
         this.checkAccount();
       });
     Providers.globalProvider = new SimpleProvider(this.getAccessToken);
+    Providers.globalProvider.login = async () => {
+      this.login(this.msalGuardConfig);
+    };
+    Providers.globalProvider.logout = async () => {
+      this.logout();
+    };
     console.log('ngOnInit end', this.msalGuardConfig);
   }
 
@@ -93,7 +98,6 @@ export class AppComponent implements OnInit, OnDestroy {
     console.log('getAccessToken', msalObj.getAllAccounts()[0]);
     try {
       let response = await msalObj.acquireTokenSilent(request);
-      console.log('0', response.accessToken);
       return response.accessToken;
     } catch (error) {
       // handle error
@@ -108,7 +112,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.loggedIn = this.authService.instance.getAllAccounts().length > 0;
   }
 
-  login() {
+  login(msalGuardConfig: any) {
     console.log('trying to login');
     console.log('msalGuardConfig', this._msalGuardConfig);
 

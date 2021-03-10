@@ -3,9 +3,9 @@
 
   <div class="toolbar-spacer"></div>
 
-  <button mat-raised-button *ngIf="!loggedIn" (click)="login()">Login</button>
-  <button mat-raised-button *ngIf="loggedIn" color="warn" (click)="logout()">Logout</button>
-  <mgt-login id="login" *ngIf="loggedIn"></mgt-login>
+  <!-- <button mat-raised-button *ngIf="!loggedIn" (click)="login()">Login</button>
+  <button mat-raised-button *ngIf="loggedIn" color="warn" (click)="logout()">Logout</button> -->
+  <mgt-login id="login"></mgt-login>
   <mgt-person person-query="me"></mgt-person>
 </mat-toolbar>
 
