@@ -59,8 +59,14 @@ export class AppComponent implements OnInit, OnDestroy {
     console.log('ngOnInit', this.msalGuardConfig);
 
     this.authService.handleRedirectObservable().subscribe({
-      next: (result) => {
-        Providers.globalProvider.setState(ProviderState.SignedIn);
+      next: (tokenResponse) => {
+        if (tokenResponse !== null) {
+          if (tokenResponse.idToken) {
+            Providers.globalProvider.setState(ProviderState.SignedIn);
+          } else {
+            Providers.globalProvider.setState(ProviderState.SignedOut);
+          }
+        }
       },
       error: (error) => console.log(error),
     });
@@ -83,7 +89,7 @@ export class AppComponent implements OnInit, OnDestroy {
       });
     Providers.globalProvider = new SimpleProvider(this.getAccessToken);
     Providers.globalProvider.login = async () => {
-      this.login(this.msalGuardConfig);
+      this.login();
     };
     Providers.globalProvider.logout = async () => {
       this.logout();
@@ -93,17 +99,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
   async getAccessToken(scopes: any): Promise<any> {
     const msalObj = MSALInstanceFactory();
-    //Why isn't this.account set here?
-    var request = { scopes: scopes, account: msalObj.getAllAccounts()[0] };
-    console.log('getAccessToken', msalObj.getAllAccounts()[0]);
-    try {
-      let response = await msalObj.acquireTokenSilent(request);
-      return response.accessToken;
-    } catch (error) {
-      // handle error
-      console.log('0', error);
-      if (error instanceof InteractionRequiredAuthError) {
-        msalObj.acquireTokenRedirect(request);
+    const account = msalObj.getAllAccounts()[0];
+    if (account) {
+      //Why isn't this.account set here?
+      var request = { scopes: scopes, account: account };
+      console.log('getAccessToken', msalObj.getAllAccounts()[0]);
+      try {
+        let response = await msalObj.acquireTokenSilent(request);
+        return response.accessToken;
+      } catch (error) {
+        // handle error
+        console.log('0', error);
+        if (error instanceof InteractionRequiredAuthError) {
+          msalObj.acquireTokenRedirect(request);
+        }
       }
     }
   }
@@ -112,7 +121,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.loggedIn = this.authService.instance.getAllAccounts().length > 0;
   }
 
-  login(msalGuardConfig: any) {
+  login() {
     console.log('trying to login');
     console.log('msalGuardConfig', this._msalGuardConfig);
 
