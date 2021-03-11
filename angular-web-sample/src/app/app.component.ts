@@ -7,8 +7,6 @@ import {
   MsalModule,
 } from '@azure/msal-angular';
 import {
-  AccountInfo,
-  AuthenticationResult,
   EventMessage,
   EventType,
   InteractionRequiredAuthError,
@@ -24,7 +22,6 @@ import {
   ProviderState,
   TemplateHelper,
 } from '@microsoft/mgt/dist/es6/index.js';
-import * as auth from './auth-config.json';
 import { MSALInstanceFactory } from './app.module';
 
 @Component({
@@ -39,14 +36,12 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly _destroying$ = new Subject<void>();
   accessToken = '';
   account: any = {};
-  _msalGuardConfig = {};
 
   constructor(
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService
   ) {
-    console.log('constructor msalGuardConfig', this.msalGuardConfig);
     console.log('global provider: ', Providers.globalProvider);
 
     TemplateHelper.setBindingSyntax('[[', ']]');
@@ -54,9 +49,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.isIframe = window !== window.parent && !window.opener;
-    this._msalGuardConfig = this.msalGuardConfig;
     this.checkAccount();
-    console.log('ngOnInit', this.msalGuardConfig);
 
     this.authService.handleRedirectObservable().subscribe({
       next: (tokenResponse) => {
@@ -98,18 +91,18 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async getAccessToken(scopes: any): Promise<any> {
+
+    // todo: initiate msalObj outside of async
     const msalObj = MSALInstanceFactory();
     const account = msalObj.getAllAccounts()[0];
     if (account) {
-      //Why isn't this.account set here?
       var request = { scopes: scopes, account: account };
-      console.log('getAccessToken', msalObj.getAllAccounts()[0]);
       try {
         let response = await msalObj.acquireTokenSilent(request);
         return response.accessToken;
       } catch (error) {
         // handle error
-        console.log('0', error);
+        console.log('error getting access token', error);
         if (error instanceof InteractionRequiredAuthError) {
           msalObj.acquireTokenRedirect(request);
         }
@@ -122,9 +115,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   login() {
-    console.log('trying to login');
-    console.log('msalGuardConfig', this._msalGuardConfig);
-
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       if (this.msalGuardConfig.authRequest) {
         this.authService

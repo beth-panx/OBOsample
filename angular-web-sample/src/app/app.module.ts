@@ -67,10 +67,10 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
  */
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return { interactionType: InteractionType.Redirect,
-    // authRequest: {
-    //   // add default scopes for mgt components
-    //   scopes: ['user.read']
-    // }
+    authRequest: {
+      // add default scopes for mgt components
+      scopes: ['user.read', 'user.readbasic.all', 'people.read', 'mail.readbasic', 'contacts.read', 'email', 'openid', 'profile', 'presence.read', 'presence.read.all']
+    }
   };
 }
 

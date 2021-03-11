@@ -1,20 +1,21 @@
 ---
 services: active-directory
 platforms: java
-author: ramya25
+author: beth-pan
 level: 300
-client: Java web app
+client: Angular web app
 service: Java Web API
 endpoint: Microsoft identity platform
 page_type: sample
 languages:
-  - java  
+  - Java
+  - Typescript
 products:
   - azure
   - azure-active-directory
   - java
   - office-ms-graph
-description: "This sample demonstrates a Java web app application calling a Java Web API that is secured using Azure Active Directory using the On-Behalf-Of flow"
+description: "This sample demonstrates a Angular web app application calling a Java Web API that is secured using Azure Active Directory using the On-Behalf-Of flow"
 ---
 
 # A Java Web API that calls another web API with the Microsoft identity platform using the On-Behalf-Of flow
@@ -23,11 +24,11 @@ description: "This sample demonstrates a Java web app application calling a Java
 
 ### Overview
 
-This sample demonstrates a Java web application signing-in a user with the Microsoft Identity Platform and also obtaining an [access token](https://aka.ms/access-tokens) for the Web API. The Web API, in turn calls the [Microsoft Graph](https://graph.microsoft.com) using an [access token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) obtained using the [on-behalf-of](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) flow. All these are secured using the [Microsoft identity platform (formerly Azure Active Directory for developers)](https://docs.microsoft.com/azure/active-directory/develop/).
+This sample demonstrates a Angular web application signing-in a user with the Microsoft Identity Platform and also obtaining an [access token](https://aka.ms/access-tokens) for the Web API. The Web API, in turn calls the [Microsoft Graph](https://graph.microsoft.com) using an [access token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) obtained using the [on-behalf-of](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow) flow. All these are secured using the [Microsoft identity platform (formerly Azure Active Directory for developers)](https://docs.microsoft.com/azure/active-directory/develop/).
 
 ### Scenario
 
-1. The Java web application uses the [Microsoft Authentication Library for Java (MSAL4J)](https://github.com/AzureAD/microsoft-authentication-library-for-java) to obtain an Access token from the Microsoft identity platform for the authenticated user.
+1. The Angular web application uses the [Microsoft Authentication Library for Angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular) to obtain an Access token from the Microsoft identity platform for the authenticated user.
 1. The access token is then used as a bearer token to authorize the caller in the Java web API and then subsequently exchanged for another access token for the Microsoft Graph API.
 
 The flow is as follows:
@@ -90,7 +91,7 @@ As a first step you'll need to:
    - Click the **Add a permission** button and then,
    - Ensure that the **Microsoft APIs** tab is selected.
    - In the *Commonly used Microsoft APIs* section, click on **Microsoft Graph**
-   - In the **Delegated permissions** section, select the **User.Read** in the list. Use the search box if necessary.
+   - In the **Delegated permissions** section, select the **User.Read** in the list. Use the search box if necessary. You can add more permissions to suit your app needs.
    - Click on the **Add permissions** button in the bottom.
 1. In the Application menu blade, click on the **Expose an API** to open the page where declare the parameters to expose this app as an Api for which client applications can obtain [access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) for.
 The first thing that we need to do is to declare the unique [resource](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) URI that the clients will be using to obtain access tokens for this Api. To declare an resource URI, follow the following steps:
@@ -116,28 +117,20 @@ Open `application.properties` in the src/main/resources folder. Fill in with you
 - *Enter_the_Application_Id_here* with the **Application (client) ID**.
 - *Enter_the_Client_Secret_Here* with the **key value** noted earlier.
 
-#### Register the client web app (Java_webapp)
+#### Register the client web app (Angular_webapp)
 
-1. Navigate to the Microsoft identity platform for developers [App registrations](https://go.microsoft.com/fwlink/?linkid=2083908) page.
+1. Navigate to the Azure portal -> Azure Active Directory -> App Registrations.
 1. Click **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `java_webapp`.
+   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `angular_webapp`.
    - Change **Supported account types** to **Accounts in any organizational directory and personal Microsoft accounts (e.g. Skype, Xbox, Outlook.com)**.
-     > Note that there are more than one redirect URIs used in this sample. You'll need to add them from the **Authentication** tab later after the app has been created successfully.
 1. Click on the **Register** button to create the application.
 1. In the app's registration **Overview** page, find the **Application (client) ID** value and record it for later. You'll need it to configure the configuration file(s) later in your code.
 1. In the app's registration screen, click on the **Authentication** blade in the left and:
-   - In the **Platform configurations** section select **Add a platform** and create a new **Web** application
-   - Enter the following as the redirect URI: `http://localhost:8080/msal4jsample/secure/aad`
+   - In the **Platform configurations** section select **Add a platform** and create a new **Single-page** application
+   - Enter the following as the redirect URI: `http://localhost:4200`
    - Click on **Configure** to save your changes.
-   - Do the same for: `http://localhost:8080/msal4jsample/graph/me`
    - Click the **Save** button to save the the redirect URI changes.
-1. In the Application menu blade, click on the **Certificates & secrets** to open the page where we can generate secrets and upload certificates.
-1. In the **Client secrets** section, click on **New client secret**:
-   - Type a key description (for instance `app secret`),
-   - Select one of the available key durations (**In 1 year**, **In 2 years**, or **Never Expires**) as per your security concerns.
-   - The generated key value will be displayed when you click the **Add** button. Copy the generated value for use in the steps later.
-   - You'll need this key later in your code's configuration files. This key value will not be displayed again, and is not retrievable by any other means, so make sure to note it from the Azure portal before navigating to any other screen or blade.
 1. In the Application menu blade, click on the **API permissions** to open the page where we add access to the Apis that your application needs.
    - Click the **Add a permission** button and then,
    - Ensure that the **My APIs** tab is selected.
@@ -145,35 +138,15 @@ Open `application.properties` in the src/main/resources folder. Fill in with you
    - In the **Delegated permissions** section, select the **access_as_user** in the list.
    - Click on the **Add permissions** button in the bottom.
 
-#### Configure the **msal-web-sample** to use your Azure AD tenant
+#### Configure the **angular-web-sample** to use your Azure AD tenant
 
-Open `application.properties` in the msal-web-sample/src/main/resources folder. Fill in with your tenant and app registration information noted in registration step.
+Open `auth-config.json` in the ./angular-web-sample/src/app/cd a folder. Fill in with your tenant and app registration information noted in registration step.
 
-- Replace *Enter_the_Application_Id_here* with the **Application (client) ID**.
-- Replace *Enter_the_Client_Secret_Here* with the **key value** noted earlier.
-- Replace *OboApi* with the API exposed in the `Web Api app` **(api://{clientId})**.
-
-#### HTTPS on localhost
-
-If you are only testing locally, you may skip this step. If you deploy your app to Azure App Service (for production or for testing), https is handled by Azure and you may skip this step. Note that https is essential for providing critical security and data integrity to your applications, and http should not be used outside of testing scenarios. If you need to configure your application to handle https, complete the instructions in this section.
-
-1. Use the `keytool` utility (included in JRE) if you want to generate self-signed certificate.
-
-    ```Bash
-    keytool -genkeypair -alias testCert -keyalg RSA -storetype PKCS12 -keystore keystore.p12 -storepass password
-    ```
-
-2. Put the following key-value pairs into your [application.properties](msal-web-sample/src/main/resources/application.properties) file.
-
-    ```ini
-    server.ssl.key-store-type=PKCS12
-    server.ssl.key-store=classpath:keystore.p12
-    server.ssl.key-store-password=password
-    server.ssl.key-alias=testCert
-    ```
-
-3. Change both occurrences of `8080` to `8443` in the msal-web-sample's [application.properties](msal-web-sample/src/main/resources/application.properties) file.
-4. Update your java_webapp Azure AD application registration redirects (e.g., `https://localhost:8443/msal4jsample/secure/aad` and `https://localhost:8443/msal4jsample/graph/me`) on the [Azure Portal](https://portal.azure.com).
+- Replace *clientId* with the **Application (client) ID**.
+- Replace *tenantId* with the **Tenant ID** noted earlier.
+- Replace *redirectUri* and *postLogoutRedirectUri* with **http://localhost:4200**
+- Replace *resourceUri* with the api controller endpoints
+- Replace *resourceScopes* with the API exposed in the `Web Api app` **(api://{clientId})**.
 
 #### Configure known client applications for service (Java-webapi)
 
@@ -195,131 +168,25 @@ To run the project, you can either:
 
 Run it directly from your IDE by using the embedded spring boot server or package it to a WAR file using [maven](https://maven.apache.org/plugins/maven-war-plugin/usage.html) and deploy it a J2EE container solution for example [Tomcat](https://tomcat.apache.org/maven-plugin-trunk/tomcat6-maven-plugin/examples/deployment.html)
 
-#### Running from IDE
-
-If you are running the application from an IDE, follow the steps below.
-
-The following steps are for IntelliJ IDEA. But you can choose and work with any editor of your choice.
-
-1. Navigate to *Run* --> *Edit Configurations* from menu bar.
-2. Click on '+' (Add new configuration) and select *Application*.
-3. Enter name of the application for example `webapp`
-4. Go to main class and select from the dropdown, for example `MsalWebSampleApplication` also go to *Use classpath of the module* and select from the dropdown, for example `msal-web-sample`.
-5. Click on *Apply*. Follow the same instructions for adding the other application.
-6. Click on '+' (Add new configuration) and select *Compound*.
-7. Enter a friendly name for in the *Name* for example `Msal-webapi-sample`.
-8. Click on '+' and select the application names you have created in the above steps one at a time.
-9. Click on *Apply*. Select the created configuration and click **Run**. Now both the projects will run at a time.
-
-- Now navigate to the home page of the project. For this sample, the standard home page URL is <https://localhost:8080/msal4jsample>
-
-#### Packaging and deploying to container
-
-If you would like to deploy the sample to Tomcat, you will need to make a couple of changes to the source code in both modules.
-
-1. Open msal-webapp-sample/pom.xml
-    - Under `<name>msal-web-sample</name>` add `<packaging>war</packaging>`
-    - Add dependency:
-
-         ```xml
-         <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-tomcat</artifactId>
-         </dependency>
-         ```
-
-2. Open msal-web-sample/src/main/java/com.microsoft.azure.msalwebsample/MsalWebSampleApplication
-
-    - Delete all source code and replace with
-
-    ```Java
-        package com.microsoft.azure.msalwebsample;
-
-        import org.springframework.boot.SpringApplication;
-        import org.springframework.boot.autoconfigure.SpringBootApplication;
-        import org.springframework.boot.builder.SpringApplicationBuilder;
-        import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-
-        @SpringBootApplication
-        public class MsalWebSampleApplication extends SpringBootServletInitializer {
-         public static void main(String[] args) {
-          SpringApplication.run(MsalWebSampleApplication.class, args);
-         }
-
-         @Override
-         protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-          return builder.sources(MsalWebSampleApplication.class);
-         }
-        }
-    ```
-
-3. Open a command prompt, go to the root folder of the project, and run `mvn package`
-
-- This will generate a `msal-web-sample-0.1.0.war` file in your /targets directory.
-- Rename this file to `msal4jsample.war`
-- Deploy this war file using Tomcat or any other J2EE container solution.
-- To deploy on Tomcat container, copy the .war file to the webapp's folder under your Tomcat installation and then start the Tomcat server.
-- Repeat these steps for the `msal-obo-sample` also.
-
-This WAR will automatically be hosted at `http:<yourserverhost>:<yourserverport>/`
-
-Tomcats default port is 8080. This can be changed by
-    - Going to tomcat/conf/server.xml
-    - Search "Connector Port"
-    - Replace "8080" with your desired port number
-
-Example: `http://localhost:8080/msal4jsample`
+#### Running the apps
+Java (msal-bob-sample): `mvn spring-boot:run`
+Angular (angular-web-sample): `ng serve --disable-host-check`
 
 ### You're done, run the code
-
-Click on "Login" to start the process of logging in. Once logged in, you'll see the account information for the user that is logged in and a Button "Call OBO API" , which will call the Microsoft Graph API with the OBO token and display the basic information of the signed-in user. You'll then have the option to "Sign out".
+Click login button and your app should show below Microsoft Graph Toolkit components:
+mgt-login
+mgt-person
+mgt-person-card
+mgt-people-picker
 
 ## About the Code
 
 There are many key points in this sample to make the On-Behalf-Of-(OBO) flow work properly and in this section we will explain these key points for each project.
 
-### msal-webapp-sample
-
-1. **AuthPageController** class
-
-    Contains the api to interact with the web app. The `securePage` method handles the authentication part and signs in the user using microsoft authentication.
-
-2. **AuthHelper** class
-
-    Contains helper methods to handle authentication.
-
-    A code snippet showing how to obtain auth result by silent flow.
-
-    ```Java
-
-        private ConfidentialClientApplication createClientApplication() throws MalformedURLException {
-            return ConfidentialClientApplication.builder(clientId, ClientCredentialFactory.create(clientSecret))
-                                                .authority(authority)
-                                                .build();
-        }...
-
-          SilentParameters parameters = SilentParameters.builder(
-                        Collections.singleton(scope),
-                        result.account()).build();
-
-                CompletableFuture<IAuthenticationResult> future = app.acquireTokenSilently(parameters);
-                ...
-
-        storeTokenCacheInSession(httpRequest, app.tokenCache().serialize());
-        ...
-    ```
-
-    Important things to notice:
-
-    - We create a `ConfidentialClientApplication` using **MSAL Build Pattern** passing the `clientId`, `clientSecret` and `authority` in the builder. This `ConfidentialClientApplication` will be responsible of acquiring access tokens later in the code.
-    - `ConfidentialClientApplication` also has a token cache, that will cache [access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) and [refresh tokens](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#refresh-the-access-token) for the signed-in user. This is done so that the application can fetch access tokens after they have expired without prompting the user to sign-in again.
-
-3. **AuthFilter** class
-
-    Contains methods for session and state management.
+### angular-web-sample
+// todo
 
 ### msal-obo-sample
-
 1. **ApiController** class
 
     Contains the api(graphMeApi) to trigger the obo flow. The graphMeApi method gets the obo access token using **MsalAuthHelper**. The `callMicrosoftGraphEndPoint` method calls the Microsoft graph API using obo token.
@@ -365,29 +232,3 @@ There are many key points in this sample to make the On-Behalf-Of-(OBO) flow wor
 
             auth = application.acquireToken(parameters).join();
     ```
-
-## Feedback, Community Help and Support
-
-Use [Stack Overflow](http://stackoverflow.com/questions/tagged/adal) to get support from the community.
-Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
-Make sure that your questions or comments are tagged with [`msal4j` `Java`].
-
-If you find a bug in the sample, please raise the issue on [GitHub Issues](https://github.com/Azure-Samples/ms-identity-java-webapp/issues).
-
-To provide a recommendation, visit the following [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory).
-
-## Contributing
-
-If you'd like to contribute to this sample, see [CONTRIBUTING.MD](https://github.com/Azure-Samples/ms-identity-java-webapp/blob/master/CONTRIBUTING.md).
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Other samples and documentation
-
-- For more information, see MSAL4J [conceptual documentation](https://github.com/AzureAD/azure-activedirectory-library-for-java/wiki)
-- Other samples for Microsoft identity platform are available from [https://aka.ms/aaddevsamplesv2](https://aka.ms/aaddevsamplesv2)
-- [Microsoft identity platform and OAuth 2.0 On-Behalf-Of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
-- The documentation for Microsoft identity platform is available from [https://aka.ms/aadv2](https://aka.ms/aadv2)
-- For more information about web apps scenarios on the Microsoft identity platform see [Scenario: Web app that signs in users](https://docs.microsoft.com/azure/active-directory/develop/scenario-web-app-sign-user-overview) and [Scenario: Web app that calls web APIs](https://docs.microsoft.com/azure/active-directory/develop/scenario-web-app-call-api-overview)
-- [Why update to Microsoft identity platform?](https://docs.microsoft.com/azure/active-directory/develop/azure-ad-endpoint-comparison)
-- For more information about how OAuth 2.0 protocols work in this scenario and other scenarios, see [Authentication Scenarios for Azure AD](http://go.microsoft.com/fwlink/?LinkId=394414).
